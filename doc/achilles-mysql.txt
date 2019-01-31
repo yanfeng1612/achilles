@@ -1,0 +1,117 @@
+-- CREATE DATABASE Achilles;
+
+USE Achilles;
+
+DROP TABLE IF EXISTS graph;
+CREATE TABLE graph(
+    id          BIGINT          NOT NULL        AUTO_INCREMENT          COMMENT '主键',
+    name        VARCHAR(64)     NOT NULL        DEFAULT ''              COMMENT '流程名称',
+    createTime  DATETIME        NOT NULL                                COMMENT '创建时间',
+    refreshTime timestamp       NOT NULL        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY(id),
+    UNIQUE INDEX uni_name(name)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '流程表';
+
+DROP TABLE IF EXISTS node;
+CREATE TABLE node(
+    id          BIGINT          NOT NULL        AUTO_INCREMENT          COMMENT '主键',
+    graphId     BIGINT          NOT NULL                                COMMENT '流程id',
+    name        VARCHAR(64)     NOT NULL        DEFAULT ''              COMMENT '名称',
+    type        TINYINT         NOT NULL        DEFAULT 0               COMMENT '类型:0-开始节点 1-任务节点 2-判断节点 3-等待节点 4-结束节点',
+    execType    TINYINT         NOT NULL        DEFAULT 0               COMMENT '执行方式 : 0-http接口实现 1-sql实现 2-自定义实现',      
+    priority    TINYINT         NOT NULL        DEFAULT 0               COMMENT '任务优先级',
+    initDelay   INT             NOT NULL        DEFAULT 0               COMMENT '初始延迟执行时间',
+    retryNumber TINYINT         NOT NULL        DEFAULT 0               COMMENT '失败重试次数',
+    url         VARCHAR(128)    NOT NULL        DEFAULT ''              COMMENT 'http url',
+    reqParam    VARCHAR(128)    NOT NULL        DEFAULT ''              COMMENT 'http请求参数',
+    execSql         VARCHAR(512)    NOT NULL        DEFAULT ''              COMMENT '预执行sql',
+    createTime  DATETIME        NOT NULL                                COMMENT '创建时间',
+    refreshTime timestamp       NOT NULL        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY(id),
+    INDEX idx_graphId(graphId)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='节点';
+
+DROP TABLE IF EXISTS node_relation;
+CREATE TABLE node_relation(
+    id          BIGINT          NOT NULL        AUTO_INCREMENT          COMMENT '主键',
+    graphId     BIGINT          NOT NULL                                COMMENT '流程id',
+    fromNodeId  BIGINT          NOT NULL                                COMMENT '出度节点id',
+    toNodeId    BIGINT          NOT NULL                                COMMENT '入度节点id',
+    edgnCondition   VARCHAR(64)     NOT NULL        DEFAULT ''          COMMENT '边上条件',              
+    createTime  DATETIME        NOT NULL                                COMMENT '创建时间',
+    refreshTime timestamp       NOT NULL        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY(id),
+    INDEX idx_graphId(graphId)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='节点关系';
+
+DROP TABLE IF EXISTS engine;
+CREATE TABLE engine(
+    id          BIGINT          NOT NULL        AUTO_INCREMENT          COMMENT '主键',
+    createTime  DATETIME        NOT NULL                                COMMENT '创建时间',
+    refreshTime timestamp       NOT NULL        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY(id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='引擎配置表';
+
+
+DROP TABLE IF EXISTS achilles_data;
+CREATE TABLE achilles_data(
+    id          BIGINT          NOT NULL        AUTO_INCREMENT          COMMENT '主键',
+    graphId     BIGINT          NOT NULL                                COMMENT '流程id',
+    traceId     varchar(64)     NOT NULL        DEFAULT ''              COMMENT '追踪id',
+    createTime  DATETIME        NOT NULL                                COMMENT '创建时间',
+    refreshTime timestamp       NOT NULL        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY(id),
+    UNIQUE INDEX uni_traceId(traceId)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='achilles数据表';
+
+DROP TABLE IF EXISTS achilles_data_detail;
+CREATE TABLE achilles_data_detail(
+    id          BIGINT          NOT NULL        AUTO_INCREMENT          COMMENT '主键',
+    graphId     BIGINT          NOT NULL                                COMMENT '流程id',
+    traceId     varchar(64)     NOT NULL        DEFAULT ''              COMMENT '追踪id',
+    nodeId      BIGINT          NOT NULL                                COMMENT '节点id',
+    state       TINYINT         NOT NULL        DEFAULT 0               COMMENT '状态 0-未执行 1-执行中 2-执行成功 3-执行失败',
+    reqParam    VARCHAR(512)    NOT NULL                                COMMENT '请求参数',
+    resContent  text            NOT NULL        DEFAULT ''              COMMENT '响应结果',
+    sqlResult   text            NOT NULL        DEFAULT ''              COMMENT 'sql执行结果',
+    createTime  DATETIME        NOT NULL                                COMMENT '创建时间',
+    refreshTime timestamp       NOT NULL        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY(id),
+    UNIQUE INDEX uni_graphId_nodeId(graphId,nodeId),
+    UNIQUE INDEX uni_traceId_nodeId(traceId,nodeId)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据明细';
+
+
+DROP TABLE IF EXISTS task;
+CREATE TABLE task(
+    id          BIGINT          NOT NULL        AUTO_INCREMENT          COMMENT '主键',
+    graphId     BIGINT          NOT NULL                                COMMENT '流程id',
+    traceId     varchar(64)     NOT NULL        DEFAULT ''              COMMENT '追踪id',
+    nodeId      BIGINT          NOT NULL                                COMMENT '节点id',
+    state       TINYINT         NOT NULL        DEFAULT 0               COMMENT '状态 0-未执行 1-执行中 2-执行成功 3-执行失败',
+    executeCount TINYINT        NOT NULL        DEFAULT 0               COMMENT '任务执行次数',
+    priority    TINYINT         NOT NULL        DEFAULT 0               COMMENT '任务优先级',
+    initDelay   INT             NOT NULL        DEFAULT 0               COMMENT '初始延迟执行时间',
+    retryNumber TINYINT         NOT NULL        DEFAULT 0               COMMENT '失败重试次数',
+    startTime   DATETIME        NOT NULL        DEFAULT '0000-00-00 00:00:00' COMMENT '任务开始时间',
+    endTime     DATETIME        NOT NULL        DEFAULT '0000-00-00 00:00:00' COMMENT '任务结束时间',
+    createTime  DATETIME        NOT NULL                                COMMENT '创建时间',
+    refreshTime timestamp       NOT NULL        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY(id),
+    UNIQUE INDEX uni_graphId_nodeId(graphId,nodeId),
+    UNIQUE INDEX uni_traceId_nodeId(traceId,nodeId)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '任务表';
+
+
+INSERT INTO `Achilles`.`graph` (`id`, `name`, `createTime`, `refreshTime`) VALUES ('1', 'demo', '2019-01-31 14:52:18', '2019-01-31 14:52:19');
+
+INSERT INTO `Achilles`.`node` (`id`, `graphId`, `name`, `type`, `execType`, `priority`, `initDelay`, `retryNumber`, `reqParam`, `execSql`, `createTime`, `refreshTime`) VALUES ('1', '1', 'start', '0', '0', '0', '0', '0', '', '', '2019-01-31 14:56:08', '2019-01-31 14:56:17');
+INSERT INTO `Achilles`.`node` (`id`, `graphId`, `name`, `type`, `execType`, `priority`, `initDelay`, `retryNumber`, `reqParam`, `execSql`, `createTime`, `refreshTime`) VALUES ('2', '1', 'step1', '1', '0', '0', '0', '0', '', '', '2019-01-31 14:56:08', '2019-01-31 14:56:37');
+INSERT INTO `Achilles`.`node` (`id`, `graphId`, `name`, `type`, `execType`, `priority`, `initDelay`, `retryNumber`, `reqParam`, `execSql`, `createTime`, `refreshTime`) VALUES ('3', '1', 'step2', '1', '0', '0', '0', '0', '', '', '2019-01-31 14:56:08', '2019-01-31 14:57:04');
+INSERT INTO `Achilles`.`node` (`id`, `graphId`, `name`, `type`, `execType`, `priority`, `initDelay`, `retryNumber`, `reqParam`, `execSql`, `createTime`, `refreshTime`) VALUES ('4', '1', 'end', '4', '0', '0', '0', '0', '', '', '2019-01-31 14:56:08', '2019-01-31 14:56:55');
+
+INSERT INTO `Achilles`.`node_relation` (`id`, `graphId`, `fromNodeId`, `toNodeId`, `edgnCondition`, `createTime`, `refreshTime`) VALUES ('1', '1', '1', '2', '', '2019-01-31 14:58:17', '2019-01-31 14:58:18');
+INSERT INTO `Achilles`.`node_relation` (`id`, `graphId`, `fromNodeId`, `toNodeId`, `edgnCondition`, `createTime`, `refreshTime`) VALUES ('2', '1', '2', '3', '', '2019-01-31 14:58:17', '2019-01-31 14:58:18');
+INSERT INTO `Achilles`.`node_relation` (`id`, `graphId`, `fromNodeId`, `toNodeId`, `edgnCondition`, `createTime`, `refreshTime`) VALUES ('3', '1', '3', '4', '', '2019-01-31 14:58:17', '2019-01-31 14:58:18');
+
+INSERT INTO `Achilles`.`task` (`id`, `graphId`, `traceId`, `nodeId`, `state`, `executeCount`, `priority`, `initDelay`, `retryNumber`, `startTime`, `endTime`, `createTime`, `refreshTime`) VALUES ('1', '1', '1', '1', '0', '0', '0', '0', '0', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2019-01-31 16:36:07');
