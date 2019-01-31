@@ -1,8 +1,8 @@
 package models
 
 import (
-	"achilles/engine/db"
 	"fmt"
+	"github.com/yanfeng1612/achilles/engine/db"
 )
 
 type Graph struct {
@@ -41,8 +41,8 @@ type NodeRelation struct {
 	EdgnCondition string `db:"edgnCondition"`
 	CreateTime    string `db:"createTime"`
 	RefreshTime   string `db:"refreshTime"`
-	FromNode      *Node
-	ToNode        *Node
+	FromNode      Node
+	ToNode        Node
 }
 
 func getGraphBy(id int64) (*Graph, error) {
@@ -66,7 +66,7 @@ func getGraphBy(id int64) (*Graph, error) {
 	graph.NodeRelationList = relationList
 
 	for _, relation := range graph.NodeRelationList {
-		nodeMap := getFromAndToNode(graph.NodeList, relation.FromNodeID, relation.ToNodeID)
+		nodeMap := getMapFromAndToNode(graph.NodeList, relation.FromNodeID, relation.ToNodeID)
 		relation.FromNode = nodeMap[relation.FromNodeID]
 		relation.ToNode = nodeMap[relation.ToNodeID]
 	}
@@ -74,16 +74,16 @@ func getGraphBy(id int64) (*Graph, error) {
 	return graph, nil
 }
 
-func getFromAndToNode(nodes []Node, fromNodeId, toNodeId int64) map[int64]*Node {
-	m := make(map[int64]*Node)
+func getMapFromAndToNode(nodes []Node, fromNodeId, toNodeId int64) map[int64]Node {
+	m := make(map[int64]Node)
 	for i := 0; i < len(nodes); i++ {
 		node := nodes[i]
 		if node.Id == fromNodeId {
-			m[fromNodeId] = &node
+			m[fromNodeId] = node
 			continue
 		}
 		if node.Id == toNodeId {
-			m[toNodeId] = &node
+			m[toNodeId] = node
 		}
 	}
 	return m
@@ -93,7 +93,7 @@ func getNextNode(graph *Graph, current *Node) []Node {
 	result := []Node{}
 	for _, relation := range graph.NodeRelationList {
 		if relation.FromNodeID == current.Id {
-			result = append(result, *relation.ToNode)
+			result = append(result, relation.ToNode)
 		}
 	}
 	return result

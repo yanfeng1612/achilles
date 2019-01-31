@@ -1,8 +1,8 @@
 package models
 
 import (
-	"achilles/engine/db"
 	"fmt"
+	"github.com/yanfeng1612/achilles/engine/db"
 	"time"
 )
 
@@ -145,6 +145,7 @@ func handleTaskSucc(task Task) error {
 	}
 	if len(nextNodes) < 1 {
 		fmt.Println("graph has already go last node!")
+		db.DefaultDB.Exec("DELETE FROM task WHERE id = ?", task.Id)
 		return nil
 	}
 	tx, err := db.DefaultDB.Begin()

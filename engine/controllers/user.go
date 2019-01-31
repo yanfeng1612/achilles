@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"achilles/engine/models"
 	"encoding/json"
+	"github.com/yanfeng1612/achilles/engine/models"
 
 	"github.com/astaxie/beego"
 )
@@ -116,4 +116,3 @@ func (u *UserController) Logout() {
 	u.Data["json"] = "logout success"
 	u.ServeJSON()
 }
-

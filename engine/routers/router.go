@@ -8,7 +8,7 @@
 package routers
 
 import (
-	"achilles/engine/controllers"
+	"github.com/yanfeng1612/achilles/engine/controllers"
 
 	"github.com/astaxie/beego"
 )

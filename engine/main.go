@@ -1,11 +1,10 @@
 package main
 
 import (
-	"achilles/engine/db"
-	"achilles/engine/models"
-	_ "achilles/engine/routers"
-
 	"github.com/astaxie/beego"
+	"github.com/yanfeng1612/achilles/engine/db"
+	"github.com/yanfeng1612/achilles/engine/models"
+	_ "github.com/yanfeng1612/achilles/engine/routers"
 )
 
 func main() {
