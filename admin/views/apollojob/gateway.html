@@ -1,0 +1,22 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+
+    <table class="layui-table">
+        <thead>
+            <tr>
+                <th width='80'>请求报文</th>
+                <th>响应报文</th>
+                <th>请求时间</th>
+            </tr>
+        </thead>
+        {{range $indexItem,$item := .list}}
+        {{if $item}}
+        <tr>
+            <th>{{$item.RequestData}}</th>
+            <th>{{$item.ResponseData}}</th>
+            <th>{{$item.CreateTime}}</th>
+        </tr>
+        {{end}}
+        {{end}}
+    </table>
+
+</div>
